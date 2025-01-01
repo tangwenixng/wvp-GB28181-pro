@@ -12,6 +12,9 @@ import java.util.Properties;
  */
 public class DefaultProperties {
 
+    /**
+     * 获取SIP相关属性
+     */
     public static Properties getProperties(String name, boolean sipLog) {
         Properties properties = new Properties();
         properties.setProperty("javax.sip.STACK_NAME", name);

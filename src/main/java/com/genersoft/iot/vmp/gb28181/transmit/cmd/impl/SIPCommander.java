@@ -275,7 +275,7 @@ public class SIPCommander implements ISIPCommander {
         content.append("s=Play\r\n");
         content.append("c=IN IP4 " + sdpIp + "\r\n");
         content.append("t=0 0\r\n");
-
+        //部分设备需要扩展SDP，需要打开此设置,一般设备无需打开
         if (userSetting.getSeniorSdp()) {
             if ("TCP-PASSIVE".equalsIgnoreCase(device.getStreamMode())) {
                 content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
@@ -301,27 +301,38 @@ public class SIPCommander implements ISIPCommander {
                 content.append("a=connection:new\r\n");
             }
         } else {
+            //tcp被动模式
             if ("TCP-PASSIVE".equalsIgnoreCase(device.getStreamMode())) {
-                content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 97 98 99\r\n");
+                content.append("m=video ")
+                        .append(ssrcInfo.getPort())
+                        .append(" TCP/RTP/AVP 96 97 98 99\r\n");
             } else if ("TCP-ACTIVE".equalsIgnoreCase(device.getStreamMode())) {
-                content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 97 98 99\r\n");
+                //tcp主动模式
+                content.append("m=video ")
+                        .append(ssrcInfo.getPort())
+                        .append(" TCP/RTP/AVP 96 97 98 99\r\n");
             } else if ("UDP".equalsIgnoreCase(device.getStreamMode())) {
-                content.append("m=video " + ssrcInfo.getPort() + " RTP/AVP 96 97 98 99\r\n");
+                //UDP:udp传输
+                content.append("m=video ")
+                        .append(ssrcInfo.getPort())
+                        .append(" RTP/AVP 96 97 98 99\r\n");
             }
             content.append("a=recvonly\r\n");
             content.append("a=rtpmap:96 PS/90000\r\n");
             content.append("a=rtpmap:98 H264/90000\r\n");
             content.append("a=rtpmap:97 MPEG4/90000\r\n");
             content.append("a=rtpmap:99 H265/90000\r\n");
-            if ("TCP-PASSIVE".equalsIgnoreCase(device.getStreamMode())) { // tcp被动模式
+            if ("TCP-PASSIVE".equalsIgnoreCase(device.getStreamMode())) {
+                // tcp被动模式
                 content.append("a=setup:passive\r\n");
                 content.append("a=connection:new\r\n");
-            } else if ("TCP-ACTIVE".equalsIgnoreCase(device.getStreamMode())) { // tcp主动模式
+            } else if ("TCP-ACTIVE".equalsIgnoreCase(device.getStreamMode())) {
+                // tcp主动模式
                 content.append("a=setup:active\r\n");
                 content.append("a=connection:new\r\n");
             }
         }
-
+        //码流标识-可选值: stream/streamnumber/streamprofile/streamMode
         if (!ObjectUtils.isEmpty(channel.getStreamIdentification())) {
             content.append("a=" + channel.getStreamIdentification() + "\r\n");
         }
@@ -330,7 +341,11 @@ public class SIPCommander implements ISIPCommander {
         // f字段:f= v/编码格式/分辨率/帧率/码率类型/码率大小a/编码格式/码率大小/采样率
 //			content.append("f=v/2/5/25/1/4000a/1/8/1" + "\r\n"); // 未发现支持此特性的设备
 
-        Request request = headerProvider.createInviteRequest(device, channel.getDeviceId(), content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(),sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
+        Request request = headerProvider.createInviteRequest(device, channel.getDeviceId(), content.toString(),
+                SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,
+                ssrcInfo.getSsrc(),
+                sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
+
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, (e -> {
             sessionManager.removeByStream(ssrcInfo.getStream());
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
@@ -429,7 +444,9 @@ public class SIPCommander implements ISIPCommander {
         //ssrc
         content.append("y=" + ssrcInfo.getSsrc() + "\r\n");
 
-        Request request = headerProvider.createPlaybackInviteRequest(device, channel.getDeviceId(), content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()), ssrcInfo.getSsrc());
+        Request request = headerProvider.createPlaybackInviteRequest(device, channel.getDeviceId(), content.toString(),
+                SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,
+                sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()), ssrcInfo.getSsrc());
 
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, event -> {
             ResponseEvent responseEvent = (ResponseEvent) event.event;
@@ -519,7 +536,10 @@ public class SIPCommander implements ISIPCommander {
         log.debug("此时请求下载信令的ssrc===>{}",ssrcInfo.getSsrc());
         // 添加订阅
         CallIdHeader newCallIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()), device.getTransport());
-        Request request = headerProvider.createPlaybackInviteRequest(device, channel.getDeviceId(), content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,newCallIdHeader, ssrcInfo.getSsrc());
+
+        Request request = headerProvider.createPlaybackInviteRequest(device, channel.getDeviceId(), content.toString(),
+                SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,
+                newCallIdHeader, ssrcInfo.getSsrc());
 
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, event -> {
             ResponseEvent responseEvent = (ResponseEvent) event.event;

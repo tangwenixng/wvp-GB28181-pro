@@ -54,13 +54,16 @@ public class SIPSender {
     }
 
     public void transmitRequest(String ip, Message message, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent, Long timeout) throws SipException {
+        // Via
         ViaHeader viaHeader = (ViaHeader) message.getHeader(ViaHeader.NAME);
+        // 传输协议
         String transport = "UDP";
         if (viaHeader == null) {
             log.warn("[消息头缺失]： ViaHeader， 使用默认的UDP方式处理数据");
         } else {
             transport = viaHeader.getTransport();
         }
+        // User-Agent
         if (message.getHeader(UserAgentHeader.NAME) == null) {
             try {
                 message.addHeader(SipUtils.createUserAgentHeader(gitUtil));
@@ -70,6 +73,7 @@ public class SIPSender {
         }
 
         if (okEvent != null || errorEvent != null) {
+            // Call-ID
             CallIdHeader callIdHeader = (CallIdHeader) message.getHeader(CallIdHeader.NAME);
             SipEvent sipEvent = SipEvent.getInstance(callIdHeader.getCallId(), eventResult -> {
                 sipSubscribe.removeSubscribe(callIdHeader.getCallId());
@@ -86,6 +90,7 @@ public class SIPSender {
         }
 
         if ("TCP".equals(transport)) {
+            // SipProviderImpl外部实现类: jain-sip.jar
             SipProviderImpl tcpSipProvider = sipLayer.getTcpSipProvider(ip);
             if (tcpSipProvider == null) {
                 log.error("[发送信息失败] 未找到tcp://{}的监听信息", ip);

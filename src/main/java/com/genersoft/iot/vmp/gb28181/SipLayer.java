@@ -37,6 +37,7 @@ public class SipLayer implements CommandLineRunner {
 
 	private final Map<String, SipProviderImpl> tcpSipProviderMap = new ConcurrentHashMap<>();
 	private final Map<String, SipProviderImpl> udpSipProviderMap = new ConcurrentHashMap<>();
+	// 监控IP列表
 	private final List<String> monitorIps = new ArrayList<>();
 
 	@Override
@@ -84,7 +85,7 @@ public class SipLayer implements CommandLineRunner {
 			sipConfig.setShowIp(String.join(",", monitorIps));
 		}
 		SipFactory.getInstance().setPathName("gov.nist");
-		if (monitorIps.size() > 0) {
+		if (!monitorIps.isEmpty()) {
 			for (String monitorIp : monitorIps) {
 				addListeningPoint(monitorIp, sipConfig.getPort());
 			}
@@ -97,7 +98,9 @@ public class SipLayer implements CommandLineRunner {
 	private void addListeningPoint(String monitorIp, int port){
 		SipStackImpl sipStack;
 		try {
-			sipStack = (SipStackImpl)SipFactory.getInstance().createSipStack(DefaultProperties.getProperties("GB28181_SIP", userSetting.getSipLog()));
+			sipStack = (SipStackImpl)SipFactory.getInstance()
+					.createSipStack(DefaultProperties.getProperties("GB28181_SIP", userSetting.getSipLog()));
+			// 设置MessageParserFactory
 			sipStack.setMessageParserFactory(new GbStringMsgParserFactory());
 		} catch (PeerUnavailableException e) {
 			log.error("[SIP SERVER] SIP服务启动失败， 监听地址{}失败,请检查ip是否正确", monitorIp);
@@ -106,9 +109,11 @@ public class SipLayer implements CommandLineRunner {
 
 		try {
 			ListeningPoint tcpListeningPoint = sipStack.createListeningPoint(monitorIp, port, "TCP");
+			//重要: 通过sipStack创建sipProvider
 			SipProviderImpl tcpSipProvider = (SipProviderImpl)sipStack.createSipProvider(tcpListeningPoint);
 
 			tcpSipProvider.setDialogErrorsAutomaticallyHandled();
+			// 设置-SipListener
 			tcpSipProvider.addSipListener(sipProcessorObserver);
 			tcpSipProviderMap.put(monitorIp, tcpSipProvider);
 			log.info("[SIP SERVER] tcp://{}:{} 启动成功", monitorIp, port);
