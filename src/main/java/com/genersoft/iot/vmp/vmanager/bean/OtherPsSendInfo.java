@@ -1,5 +1,10 @@
 package com.genersoft.iot.vmp.vmanager.bean;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class OtherPsSendInfo {
 
     /**
@@ -47,78 +52,6 @@ public class OtherPsSendInfo {
      * 推流SSRC
      */
     private String pushSSRC;
-
-    public String getSendLocalIp() {
-        return sendLocalIp;
-    }
-
-    public void setSendLocalIp(String sendLocalIp) {
-        this.sendLocalIp = sendLocalIp;
-    }
-
-    public int getSendLocalPort() {
-        return sendLocalPort;
-    }
-
-    public void setSendLocalPort(int sendLocalPort) {
-        this.sendLocalPort = sendLocalPort;
-    }
-
-    public String getReceiveIp() {
-        return receiveIp;
-    }
-
-    public void setReceiveIp(String receiveIp) {
-        this.receiveIp = receiveIp;
-    }
-
-    public int getReceivePort() {
-        return receivePort;
-    }
-
-    public void setReceivePort(int receivePort) {
-        this.receivePort = receivePort;
-    }
-
-    public String getCallId() {
-        return callId;
-    }
-
-    public void setCallId(String callId) {
-        this.callId = callId;
-    }
-
-    public String getStream() {
-        return stream;
-    }
-
-    public void setStream(String stream) {
-        this.stream = stream;
-    }
-
-    public String getPushApp() {
-        return pushApp;
-    }
-
-    public void setPushApp(String pushApp) {
-        this.pushApp = pushApp;
-    }
-
-    public String getPushStream() {
-        return pushStream;
-    }
-
-    public void setPushStream(String pushStream) {
-        this.pushStream = pushStream;
-    }
-
-    public String getPushSSRC() {
-        return pushSSRC;
-    }
-
-    public void setPushSSRC(String pushSSRC) {
-        this.pushSSRC = pushSSRC;
-    }
 
     @Override
     public String toString() {

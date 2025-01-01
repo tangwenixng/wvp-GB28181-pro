@@ -59,7 +59,9 @@ public class LogController {
     @Parameter(name = "query", description = "检索内容", required = false)
     @Parameter(name = "startTime", description = "开始时间(yyyy-MM-dd HH:mm:ss)", required = false)
     @Parameter(name = "endTime", description = "结束时间(yyyy-MM-dd HH:mm:ss)", required = false)
-    public List<LogFileInfo> queryList(@RequestParam(required = false) String query, @RequestParam(required = false) String startTime, @RequestParam(required = false) String endTime
+    public List<LogFileInfo> queryList(@RequestParam(required = false) String query,
+                                       @RequestParam(required = false) String startTime,
+                                       @RequestParam(required = false) String endTime
 
     ) {
         if (ObjectUtils.isEmpty(query)) {

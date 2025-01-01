@@ -116,7 +116,8 @@ public class ServerController {
     @Parameter(name = "secret", description = "流媒体服务secret", required = true)
     @GetMapping(value = "/media_server/check")
     @ResponseBody
-    public MediaServer checkMediaServer(@RequestParam String ip, @RequestParam int port, @RequestParam String secret, @RequestParam String type) {
+    public MediaServer checkMediaServer(@RequestParam String ip, @RequestParam int port,
+                                        @RequestParam String secret, @RequestParam String type) {
         return mediaServerService.checkMediaServer(ip, port, secret, type);
     }
 

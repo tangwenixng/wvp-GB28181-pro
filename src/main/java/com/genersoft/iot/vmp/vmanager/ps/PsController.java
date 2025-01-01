@@ -68,31 +68,35 @@ public class PsController {
     @Parameter(name = "stream", description = "形成的流的ID", required = true)
     @Parameter(name = "tcpMode", description = "收流模式， 0为UDP， 1为TCP被动", required = true)
     @Parameter(name = "callBack", description = "回调地址，如果收流超时会通道回调通知，回调为get请求，参数为callId", required = true)
-    public OtherPsSendInfo openRtpServer(Boolean isSend, @RequestParam(required = false)String ssrc, String callId, String stream, Integer tcpMode, String callBack) {
+    public OtherPsSendInfo openRtpServer(Boolean isSend, @RequestParam(required = false) String ssrc,
+                                         String callId, String stream,
+                                         Integer tcpMode, String callBack) {
 
         log.info("[第三方PS服务对接->开启收流和获取发流信息] isSend->{}, ssrc->{}, callId->{}, stream->{}, tcpMode->{}, callBack->{}",
-                isSend, ssrc, callId, stream, tcpMode==0?"UDP":"TCP被动", callBack);
+                isSend, ssrc, callId, stream, tcpMode == 0 ? "UDP" : "TCP被动", callBack);
 
         MediaServer mediaServer = mediaServerService.getDefaultMediaServer();
         if (mediaServer == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(),"没有可用的MediaServer");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "没有可用的MediaServer");
         }
         if (stream == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(),"stream参数不可为空");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "stream参数不可为空");
         }
         if (isSend != null && isSend && callId == null) {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(),"isSend为true时，CallID不能为空");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "isSend为true时，CallID不能为空");
         }
         long ssrcInt = 0;
         if (ssrc != null) {
             try {
                 ssrcInt = Long.parseLong(ssrc);
-            }catch (NumberFormatException e) {
-                throw new ControllerException(ErrorCode.ERROR100.getCode(),"ssrc格式错误");
+            } catch (NumberFormatException e) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "ssrc格式错误");
             }
         }
-        String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_PS_INFO + userSetting.getServerId() + "_" + callId + "_"  + stream;
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream, ssrcInt + "", false, false, null, false, false, false, tcpMode);
+        String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_PS_INFO + userSetting.getServerId() + "_" + callId + "_" + stream;
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServer, stream,
+                ssrcInt + "", false, false,
+                null, false, false, false, tcpMode);
 
         if (ssrcInfo.getPort() == 0) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "获取端口失败");
@@ -102,14 +106,14 @@ public class PsController {
             Hook hook = Hook.getInstance(HookType.on_rtp_server_timeout, "rtp", stream, mediaServer.getId());
             // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
             hookSubscribe.addSubscribe(hook,
-                    (hookData)->{
+                    (hookData) -> {
                         if (stream.equals(hookData.getStream())) {
                             log.info("[第三方PS服务对接->开启收流和获取发流信息] 等待收流超时 callId->{}, 发送回调", callId);
                             // 将信息写入redis中，以备后用
                             redisTemplate.delete(receiveKey);
                             OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
                             OkHttpClient client = httpClientBuilder.build();
-                            String url = callBack + "?callId="  + callId;
+                            String url = callBack + "?callId=" + callId;
                             Request request = new Request.Builder().get().url(url).build();
                             try {
                                 client.newCall(request).execute();
@@ -129,7 +133,7 @@ public class PsController {
         // 将信息写入redis中，以备后用
         redisTemplate.opsForValue().set(receiveKey, otherPsSendInfo);
         if (isSend != null && isSend) {
-            String key = VideoManagerConstants.WVP_OTHER_SEND_PS_INFO + userSetting.getServerId() + "_"  + callId;
+            String key = VideoManagerConstants.WVP_OTHER_SEND_PS_INFO + userSetting.getServerId() + "_" + callId;
             // 预创建发流信息
             int port = sendRtpServerService.getNextPort(mediaServer);
 
@@ -150,7 +154,7 @@ public class PsController {
         log.info("[第三方PS服务对接->关闭收流] stream->{}", stream);
         MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
         mediaServerService.closeRTPServer(mediaServerItem, stream);
-        String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_PS_INFO + userSetting.getServerId() + "_*_"  + stream;
+        String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_PS_INFO + userSetting.getServerId() + "_*_" + stream;
         List<Object> scan = RedisUtil.scan(redisTemplate, receiveKey);
         if (!scan.isEmpty()) {
             for (Object key : scan) {
@@ -177,7 +181,7 @@ public class PsController {
                         String stream,
                         String callId,
                         Boolean isUdp
-        ) {
+    ) {
         log.info("[第三方PS服务对接->发送流] " +
                         "ssrc->{}, \r\n" +
                         "dstIp->{}, \n" +
@@ -185,15 +189,15 @@ public class PsController {
                         "app->{}, \n" +
                         "stream->{}, \n" +
                         "callId->{} \n",
-                        ssrc,
-                        dstIp,
-                        dstPort,
-                        app,
-                        stream,
-                        callId);
+                ssrc,
+                dstIp,
+                dstPort,
+                app,
+                stream,
+                callId);
         MediaServer mediaServer = mediaServerService.getDefaultMediaServer();
-        String key = VideoManagerConstants.WVP_OTHER_SEND_PS_INFO + userSetting.getServerId() + "_"  + callId;
-        OtherPsSendInfo sendInfo = (OtherPsSendInfo)redisTemplate.opsForValue().get(key);
+        String key = VideoManagerConstants.WVP_OTHER_SEND_PS_INFO + userSetting.getServerId() + "_" + callId;
+        OtherPsSendInfo sendInfo = (OtherPsSendInfo) redisTemplate.opsForValue().get(key);
         if (sendInfo == null) {
             sendInfo = new OtherPsSendInfo();
         }
@@ -206,11 +210,11 @@ public class PsController {
             mediaServerService.startSendRtp(mediaServer, sendRtpItem);
             log.info("[第三方PS服务对接->发送流] 视频流发流成功，callId->{}，param->{}", callId, sendRtpItem);
             redisTemplate.opsForValue().set(key, sendInfo);
-        }else {
+        } else {
             log.info("[第三方PS服务对接->发送流] 流不存在，等待流上线，callId->{}", callId);
             String uuid = UUID.randomUUID().toString();
             Hook hook = Hook.getInstance(HookType.on_media_arrival, app, stream, mediaServer.getId());
-            dynamicTask.startDelay(uuid, ()->{
+            dynamicTask.startDelay(uuid, () -> {
                 log.info("[第三方PS服务对接->发送流] 等待流上线超时 callId->{}", callId);
                 redisTemplate.delete(key);
                 hookSubscribe.removeSubscribe(hook);
@@ -220,7 +224,7 @@ public class PsController {
             OtherPsSendInfo finalSendInfo = sendInfo;
             hookSubscribe.removeSubscribe(hook);
             hookSubscribe.addSubscribe(hook,
-                    (hookData)->{
+                    (hookData) -> {
                         dynamicTask.stop(uuid);
                         log.info("[第三方PS服务对接->发送流] 流上线，开始发流 callId->{}", callId);
                         try {
@@ -242,9 +246,9 @@ public class PsController {
     @Parameter(name = "callId", description = "整个过程的唯一标识，不传则使用随机端口发流", required = true)
     public void closeSendRTP(String callId) {
         log.info("[第三方PS服务对接->关闭发送流] callId->{}", callId);
-        String key = VideoManagerConstants.WVP_OTHER_SEND_PS_INFO + userSetting.getServerId() + "_"  + callId;
-        OtherPsSendInfo sendInfo = (OtherPsSendInfo)redisTemplate.opsForValue().get(key);
-        if (sendInfo == null){
+        String key = VideoManagerConstants.WVP_OTHER_SEND_PS_INFO + userSetting.getServerId() + "_" + callId;
+        OtherPsSendInfo sendInfo = (OtherPsSendInfo) redisTemplate.opsForValue().get(key);
+        if (sendInfo == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未开启发流");
         }
         MediaServer mediaServerItem = mediaServerService.getDefaultMediaServer();
@@ -252,7 +256,7 @@ public class PsController {
         if (!result) {
             log.info("[第三方PS服务对接->关闭发送流] 失败 callId->{}", callId);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "停止发流失败");
-        }else {
+        } else {
             log.info("[第三方PS服务对接->关闭发送流] 成功 callId->{}", callId);
         }
         redisTemplate.delete(key);
