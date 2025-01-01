@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.service.ILogService;
@@ -54,8 +55,8 @@ public class LogServiceImpl implements ILogService {
                 if (fileAttributes == null) {
                     continue;
                 }
-                long startTimestampForFile  = fileAttributes[0];
-                long endTimestampForFile  = fileAttributes[1];
+                long startTimestampForFile = fileAttributes[0];
+                long endTimestampForFile = fileAttributes[1];
                 logFileInfo.setStartTime(startTimestampForFile);
                 logFileInfo.setEndTime(endTimestampForFile);
                 if (startTimestamp != null && startTimestamp > startTimestampForFile) {
@@ -77,7 +78,8 @@ public class LogServiceImpl implements ILogService {
 
     private File getLogDir() {
         Logger logger = (Logger) LoggerFactory.getLogger("root");
-        RollingFileAppender rollingFileAppender = (RollingFileAppender) logger.getAppender("RollingFile");
+        // Bug 修复：指定 RollingFileAppender 的类型参数
+        RollingFileAppender<ILoggingEvent> rollingFileAppender = (RollingFileAppender<ILoggingEvent>) logger.getAppender("RollingFile");
         File rollingFile = new File(rollingFileAppender.getFile());
         return rollingFile.getParentFile();
     }
@@ -85,8 +87,8 @@ public class LogServiceImpl implements ILogService {
     Long[] getFileAttributes(File file) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
         String startLine = bufferedReader.readLine();
-        if (startLine== null) {
-           return null;
+        if (startLine == null) {
+            return null;
         }
         String startTime = startLine.substring(0, 19);
 
