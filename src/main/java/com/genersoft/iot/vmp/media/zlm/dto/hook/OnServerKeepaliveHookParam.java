@@ -1,27 +1,17 @@
 package com.genersoft.iot.vmp.media.zlm.dto.hook;
 
 import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * zlm hook事件中的on_play事件的参数
+ *
  * @author lin
  */
-public class OnServerKeepaliveHookParam extends HookParam{
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class OnServerKeepaliveHookParam extends HookParam {
 
     private ServerKeepaliveData data;
-
-    public ServerKeepaliveData getData() {
-        return data;
-    }
-
-    public void setData(ServerKeepaliveData data) {
-        this.data = data;
-    }
-
-    @Override
-    public String toString() {
-        return "OnServerKeepaliveHookParam{" +
-                "data=" + data +
-                '}';
-    }
 }

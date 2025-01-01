@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.media.zlm.dto.hook;
 
+import lombok.Data;
+
+@Data
 public class HookResult {
 
     private int code;
@@ -20,21 +23,5 @@ public class HookResult {
 
     public static HookResultForOnPublish Fail(){
         return new HookResultForOnPublish(-1, "fail");
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg;
     }
 }

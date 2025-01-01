@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class HookResultForOnPublish extends HookResult{
+public class HookResultForOnPublish extends HookResult {
 
     private boolean enable_audio;
     private boolean enable_mp4;
@@ -18,11 +18,11 @@ public class HookResultForOnPublish extends HookResult{
     public HookResultForOnPublish() {
     }
 
-    public static HookResultForOnPublish SUCCESS(){
+    public static HookResultForOnPublish SUCCESS() {
         return new HookResultForOnPublish(0, "success");
     }
 
-    public static HookResultForOnPublish getInstance(ResultForOnPublish resultForOnPublish){
+    public static HookResultForOnPublish getInstance(ResultForOnPublish resultForOnPublish) {
         HookResultForOnPublish successResult = new HookResultForOnPublish(0, "success");
         successResult.setEnable_audio(resultForOnPublish.isEnable_audio());
         successResult.setEnable_mp4(resultForOnPublish.isEnable_mp4());

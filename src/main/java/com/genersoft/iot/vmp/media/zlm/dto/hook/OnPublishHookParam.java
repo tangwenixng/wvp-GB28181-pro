@@ -5,41 +5,28 @@ import lombok.Setter;
 
 /**
  * zlm hook事件中的on_publish事件的参数
+ *
  * @author lin
  */
 
-public class OnPublishHookParam extends HookParam{
+@Setter
+@Getter
+public class OnPublishHookParam extends HookParam {
 
-    @Getter
-    @Setter
     private String id;
 
-    @Getter
-    @Setter
     private String app;
 
-    @Getter
-    @Setter
     private String stream;
 
-    @Getter
-    @Setter
     private String ip;
 
-    @Getter
-    @Setter
     private String params;
 
-    @Getter
-    @Setter
     private int port;
 
-    @Getter
-    @Setter
     private String schema;
 
-    @Getter
-    @Setter
     private String vhost;
 
 

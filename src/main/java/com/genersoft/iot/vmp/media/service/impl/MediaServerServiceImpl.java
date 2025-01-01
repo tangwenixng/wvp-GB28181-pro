@@ -180,6 +180,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
 
         if (streamId == null) {
+            // %x 表示十六进制格式，08 表示最小宽度为 8，如果不足 8 位则在前面补 0。
             streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
         }
         if (ssrcCheck && tcpMode > 0) {
@@ -303,6 +304,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public void update(MediaServer mediaSerItem) {
         mediaServerMapper.update(mediaSerItem);
+        // get MediaServer from redis
         MediaServer mediaServerInRedis = getOne(mediaSerItem.getId());
         // 获取完整数据
         MediaServer mediaServerInDataBase = mediaServerMapper.queryOne(mediaSerItem.getId());
@@ -373,6 +375,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public List<MediaServer> getAllOnline() {
+        //key: VMP_ONLINE_MEDIA_SERVERS: 在线的 使用ZSet存储
         String key = VideoManagerConstants.ONLINE_MEDIA_SERVERS_PREFIX + userSetting.getServerId();
         Set<Object> mediaServerIdSet = redisTemplate.opsForZSet().reverseRange(key, 0, -1);
 
@@ -398,6 +401,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (mediaServerId == null) {
             return null;
         }
+        //VMP_MEDIA_SERVER_INFO:000000(服务ID)
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId();
         return (MediaServer) redisTemplate.opsForHash().get(key, mediaServerId);
     }
@@ -405,6 +409,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public MediaServer getDefaultMediaServer() {
+        // SELECT * FROM wvp_media_server WHERE default_server=true
         return mediaServerMapper.queryDefault();
     }
 
@@ -563,6 +568,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public void delete(MediaServer mediaServer) {
         mediaServerMapper.delOne(mediaServer.getId());
+        //ZRem
         redisTemplate.opsForZSet().remove(VideoManagerConstants.ONLINE_MEDIA_SERVERS_PREFIX + userSetting.getServerId(), mediaServer.getId());
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + ":" + mediaServer.getId();
         redisTemplate.delete(key);

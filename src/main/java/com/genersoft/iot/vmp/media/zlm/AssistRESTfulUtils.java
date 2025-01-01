@@ -28,15 +28,15 @@ public class AssistRESTfulUtils {
     private OkHttpClient client;
 
 
-    public interface RequestCallback{
+    public interface RequestCallback {
         void run(JSONObject response);
     }
 
-    private OkHttpClient getClient(){
+    private OkHttpClient getClient() {
         return getClient(null);
     }
 
-    private OkHttpClient getClient(Integer readTimeOut){
+    private OkHttpClient getClient(Integer readTimeOut) {
         if (client == null) {
             if (readTimeOut == null) {
                 readTimeOut = 10;
@@ -45,7 +45,7 @@ public class AssistRESTfulUtils {
             // 设置连接超时时间
             httpClientBuilder.connectTimeout(8, TimeUnit.SECONDS);
             // 设置读取超时时间
-            httpClientBuilder.readTimeout(readTimeOut,TimeUnit.SECONDS);
+            httpClientBuilder.readTimeout(readTimeOut, TimeUnit.SECONDS);
             // 设置连接池
             httpClientBuilder.connectionPool(new ConnectionPool(16, 5, TimeUnit.MINUTES));
             if (log.isDebugEnabled()) {
@@ -84,7 +84,7 @@ public class AssistRESTfulUtils {
         if (param != null && !param.keySet().isEmpty()) {
             stringBuffer.append("?");
             int index = 1;
-            for (String key : param.keySet()){
+            for (String key : param.keySet()) {
                 if (param.get(key) != null) {
                     stringBuffer.append(key + "=" + param.get(key));
                     if (index < param.size()) {
@@ -101,52 +101,51 @@ public class AssistRESTfulUtils {
                 .get()
                 .url(url)
                 .build();
-            if (callback == null) {
-                try {
-                    Response response = client.newCall(request).execute();
+        if (callback == null) {
+            try {
+                Response response = client.newCall(request).execute();
+                if (response.isSuccessful()) {
+                    ResponseBody responseBody = response.body();
+                    if (responseBody != null) {
+                        String responseStr = responseBody.string();
+                        responseJSON = JSON.parseObject(responseStr);
+                    }
+                } else {
+                    response.close();
+                    Objects.requireNonNull(response.body()).close();
+                }
+            } catch (ConnectException e) {
+                log.error(String.format("连接Assist失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
+                log.info("请检查media配置并确认Assist已启动...");
+            } catch (IOException e) {
+                log.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
+            }
+        } else {
+            client.newCall(request).enqueue(new Callback() {
+
+                @Override
+                public void onResponse(@NotNull Call call, @NotNull Response response) {
                     if (response.isSuccessful()) {
-                        ResponseBody responseBody = response.body();
-                        if (responseBody != null) {
-                            String responseStr = responseBody.string();
-                            responseJSON = JSON.parseObject(responseStr);
+                        try {
+                            String responseStr = Objects.requireNonNull(response.body()).string();
+                            callback.run(JSON.parseObject(responseStr));
+                        } catch (IOException e) {
+                            log.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
                         }
-                    }else {
+
+                    } else {
                         response.close();
                         Objects.requireNonNull(response.body()).close();
                     }
-                } catch (ConnectException e) {
+                }
+
+                @Override
+                public void onFailure(@NotNull Call call, @NotNull IOException e) {
                     log.error(String.format("连接Assist失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
                     log.info("请检查media配置并确认Assist已启动...");
-                }catch (IOException e) {
-                    log.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
                 }
-            }else {
-                client.newCall(request).enqueue(new Callback(){
-
-                    @Override
-                    public void onResponse(@NotNull Call call, @NotNull Response response){
-                        if (response.isSuccessful()) {
-                            try {
-                                String responseStr = Objects.requireNonNull(response.body()).string();
-                                callback.run(JSON.parseObject(responseStr));
-                            } catch (IOException e) {
-                                log.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
-                            }
-
-                        }else {
-                            response.close();
-                            Objects.requireNonNull(response.body()).close();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                        log.error(String.format("连接Assist失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
-                        log.info("请检查media配置并确认Assist已启动...");
-                    }
-                });
-            }
-
+            });
+        }
 
 
         return responseJSON;
@@ -163,8 +162,8 @@ public class AssistRESTfulUtils {
         log.info("[访问assist]： {}, 参数： {}", url, param);
         JSONObject responseJSON = new JSONObject();
         //-2自定义流媒体 调用错误码
-        responseJSON.put("code",-2);
-        responseJSON.put("msg","ASSIST调用失败");
+        responseJSON.put("code", -2);
+        responseJSON.put("msg", "ASSIST调用失败");
 
         RequestBody requestBodyJson = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), param.toString());
 
@@ -182,30 +181,30 @@ public class AssistRESTfulUtils {
                         String responseStr = responseBody.string();
                         responseJSON = JSON.parseObject(responseStr);
                     }
-                }else {
+                } else {
                     response.close();
                     Objects.requireNonNull(response.body()).close();
                 }
-            }catch (IOException e) {
+            } catch (IOException e) {
                 log.error(String.format("[ %s ]ASSIST请求失败: %s", url, e.getMessage()));
 
-                if(e instanceof SocketTimeoutException){
+                if (e instanceof SocketTimeoutException) {
                     //读取超时超时异常
                     log.error(String.format("读取ASSIST数据失败: %s, %s", url, e.getMessage()));
                 }
-                if(e instanceof ConnectException){
+                if (e instanceof ConnectException) {
                     //判断连接异常，我这里是报Failed to connect to 10.7.5.144
                     log.error(String.format("连接ASSIST失败: %s, %s", url, e.getMessage()));
                 }
 
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error(String.format("访问ASSIST失败: %s, %s", url, e.getMessage()));
             }
-        }else {
-            client.newCall(request).enqueue(new Callback(){
+        } else {
+            client.newCall(request).enqueue(new Callback() {
 
                 @Override
-                public void onResponse(@NotNull Call call, @NotNull Response response){
+                public void onResponse(@NotNull Call call, @NotNull Response response) {
                     if (response.isSuccessful()) {
                         try {
                             String responseStr = Objects.requireNonNull(response.body()).string();
@@ -214,7 +213,7 @@ public class AssistRESTfulUtils {
                             log.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
                         }
 
-                    }else {
+                    } else {
                         response.close();
                         Objects.requireNonNull(response.body()).close();
                     }
@@ -224,11 +223,11 @@ public class AssistRESTfulUtils {
                 public void onFailure(@NotNull Call call, @NotNull IOException e) {
                     log.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
 
-                    if(e instanceof SocketTimeoutException){
+                    if (e instanceof SocketTimeoutException) {
                         //读取超时超时异常
                         log.error(String.format("读取ZLM数据失败: %s, %s", call.request().toString(), e.getMessage()));
                     }
-                    if(e instanceof ConnectException){
+                    if (e instanceof ConnectException) {
                         //判断连接异常，我这里是报Failed to connect to 10.7.5.144
                         log.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
                     }
@@ -237,13 +236,12 @@ public class AssistRESTfulUtils {
         }
 
 
-
         return responseJSON;
     }
 
-    public JSONObject getInfo(MediaServer mediaServerItem, RequestCallback callback){
+    public JSONObject getInfo(MediaServer mediaServerItem, RequestCallback callback) {
         Map<String, Object> param = new HashMap<>();
-        return sendGet(mediaServerItem, "api/record/info",param, callback);
+        return sendGet(mediaServerItem, "api/record/info", param, callback);
     }
 
     public JSONObject addTask(MediaServer mediaServerItem, String app, String stream, String startTime,
@@ -259,7 +257,8 @@ public class AssistRESTfulUtils {
         if (!ObjectUtils.isEmpty(remoteHost)) {
             videoTaskInfoJSON.put("remoteHost", remoteHost);
         }
-        String urlStr = String.format("%s/api/record/file/download/task/add",  remoteHost);;
+        String urlStr = String.format("%s/api/record/file/download/task/add", remoteHost);
+        ;
         return sendPost(mediaServerItem, urlStr, videoTaskInfoJSON, null, 30);
     }
 
@@ -282,7 +281,8 @@ public class AssistRESTfulUtils {
             param.put("isEnd", isEnd);
         }
         String urlStr = String.format("%s://%s:%s/api/record/file/download/task/list",
-                scheme, mediaServerItem.getIp(), mediaServerItem.getRecordAssistPort());;
+                scheme, mediaServerItem.getIp(), mediaServerItem.getRecordAssistPort());
+        ;
         return sendGet(mediaServerItem, urlStr, param, null);
     }
 }
