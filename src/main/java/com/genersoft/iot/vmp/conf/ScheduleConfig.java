@@ -1,11 +1,8 @@
 package com.genersoft.iot.vmp.conf;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;

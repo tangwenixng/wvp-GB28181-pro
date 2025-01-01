@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.conf;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
@@ -9,11 +10,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ServiceInfo implements ApplicationListener<WebServerInitializedEvent> {
 
+    @Getter
     private static int serverPort;
-
-    public static int getServerPort() {
-        return serverPort;
-    }
 
     @Override
     public void onApplicationEvent(WebServerInitializedEvent event) {

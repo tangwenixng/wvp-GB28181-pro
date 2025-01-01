@@ -25,6 +25,11 @@ public class UJson {
         JSON_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
     }
 
+    /**
+     * ObjectNode是JsonNode的一个具体实现
+     * 与JsonNode不同，ObjectNode是可变的，可以通过put()、remove()等方法来添加、修改或删除子节点。
+     * 这使得ObjectNode非常适合需要动态构建或修改JSON对象的场景。
+     */
     private ObjectNode node;
 
     public UJson(){

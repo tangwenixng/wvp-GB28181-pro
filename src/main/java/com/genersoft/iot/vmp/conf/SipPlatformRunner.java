@@ -15,11 +15,12 @@ import java.util.List;
 
 /**
  * 系统启动时控制上级平台重新注册
+ *
  * @author lin
  */
 @Slf4j
 @Component
-@Order(value=13)
+@Order(value = 13)
 public class SipPlatformRunner implements CommandLineRunner {
 
     @Autowired
@@ -34,10 +35,11 @@ public class SipPlatformRunner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // 获取所有启用的平台
+        // SELECT * FROM wvp_platform WHERE enable=true
         List<Platform> parentPlatforms = platformService.queryEnablePlatformList();
 
         for (Platform platform : parentPlatforms) {
-
+            //查询redis: VMP_PLATFORM_CATCH_000000_platformGbId
             PlatformCatch platformCatchOld = redisCatchStorage.queryPlatformCatchInfo(platform.getServerGBId());
 
             // 更新缓存
@@ -49,7 +51,9 @@ public class SipPlatformRunner implements CommandLineRunner {
                 // 取消订阅
                 try {
                     log.info("[平台主动注销] {}({})", platform.getName(), platform.getServerGBId());
-                    sipCommanderForPlatform.unregister(platform, platformCatchOld.getSipTransactionInfo(), null, (eventResult)->{
+                    //sip: 发送平台注销命令
+                    sipCommanderForPlatform.unregister(platform, platformCatchOld.getSipTransactionInfo(), null, (eventResult) -> {
+                        // 重新注册
                         platformService.login(platform);
                     });
                 } catch (Exception e) {
@@ -57,7 +61,7 @@ public class SipPlatformRunner implements CommandLineRunner {
                     platformService.offline(platform, true);
                     continue;
                 }
-            }else {
+            } else {
                 platformService.login(platform);
             }
 

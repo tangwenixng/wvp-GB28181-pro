@@ -55,6 +55,7 @@ public class ProxyServletConfig {
             MediaServer mediaInfo = getMediaInfoByUri(servletRequest.getRequestURI());
             if (mediaInfo != null) {
                 if (!ObjectUtils.isEmpty(queryStr)) {
+                    //查询参数增加-ZLM鉴权参数
                     queryStr += "&secret=" + mediaInfo.getSecret();
                 }else {
                     queryStr = "secret=" + mediaInfo.getSecret();
